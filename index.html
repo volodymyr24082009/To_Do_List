@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TO DO LIST - Головна</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#4f46e5" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1 class="logo">📝 TO DO LIST</h1>
+        <nav class="nav">
+          <a href="index.html" class="nav-link active">Головна</a>
+          <a href="profile.html" class="nav-link">Профіль</a>
+        </nav>
+      </header>
+
+      <main class="main">
+        <div class="welcome-section">
+          <h2>Ласкаво просимо до вашого списку завдань!</h2>
+          <p>Організуйте свої справи та підвищуйте продуктивність</p>
+        </div>
+
+        <div class="task-input-section">
+          <div class="input-group">
+            <input
+              type="text"
+              id="taskInput"
+              placeholder="Введіть нове завдання..."
+              maxlength="200"
+            />
+            <select id="prioritySelect">
+              <option value="low">Низький пріоритет</option>
+              <option value="medium" selected>Середній пріоритет</option>
+              <option value="high">Високий пріоритет</option>
+            </select>
+            <input type="date" id="deadlineInput" />
+            <button id="addTaskBtn" class="btn btn-primary">Додати</button>
+          </div>
+          <div class="tags-input">
+            <input type="text" id="tagsInput" placeholder="Теги (через кому)" />
+          </div>
+        </div>
+
+        <div class="filters-section">
+          <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">Всі</button>
+            <button class="filter-btn" data-filter="active">Активні</button>
+            <button class="filter-btn" data-filter="completed">Виконані</button>
+            <button class="filter-btn" data-filter="overdue">
+              Прострочені
+            </button>
+          </div>
+          <div class="search-box">
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Пошук завдань..."
+            />
+          </div>
+        </div>
+
+        <div class="stats-section">
+          <div class="stat-card">
+            <span class="stat-number" id="totalTasks">0</span>
+            <span class="stat-label">Всього</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number" id="activeTasks">0</span>
+            <span class="stat-label">Активні</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number" id="completedTasks">0</span>
+            <span class="stat-label">Виконані</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-number" id="overdueTasks">0</span>
+            <span class="stat-label">Прострочені</span>
+          </div>
+        </div>
+
+        <div class="tasks-section">
+          <div id="tasksList" class="tasks-list">
+            <!-- Завдання будуть додаватися динамічно -->
+          </div>
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h3>Поки що немає завдань</h3>
+            <p>Додайте своє перше завдання, щоб почати!</p>
+          </div>
+        </div>
+      </main>
+
+      <div id="taskModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="modalTitle">Редагувати завдання</h3>
+            <button class="modal-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="editTaskName">Назва завдання</label>
+              <input type="text" id="editTaskName" maxlength="200" />
+            </div>
+            <div class="form-group">
+              <label for="editTaskDescription">Опис</label>
+              <textarea
+                id="editTaskDescription"
+                rows="3"
+                maxlength="500"
+              ></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editTaskPriority">Пріоритет</label>
+                <select id="editTaskPriority">
+                  <option value="low">Низький</option>
+                  <option value="medium">Середній</option>
+                  <option value="high">Високий</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editTaskDeadline">Дедлайн</label>
+                <input type="date" id="editTaskDeadline" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="editTaskTags">Теги</label>
+              <input
+                type="text"
+                id="editTaskTags"
+                placeholder="Теги через кому"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelEdit">Скасувати</button>
+            <button class="btn btn-primary" id="saveEdit">Зберегти</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="js/index.js"></script>
+  </body>
+</html>

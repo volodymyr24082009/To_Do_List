@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TO DO LIST - Профіль</title>
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">📝 TO DO LIST</h1>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Головна</a>
+                <a href="profile.html" class="nav-link active">Профіль</a>
+            </nav>
+        </header>
+
+        <main class="main">
+            <div class="profile-section">
+                <div class="profile-header">
+                    <div class="avatar-section">
+                        <img id="userAvatar" src="/placeholder.svg?height=120&width=120" alt="Аватар користувача" class="avatar">
+                        <button class="avatar-upload-btn" onclick="document.getElementById('avatarInput').click()">
+                            📷 Змінити фото
+                        </button>
+                        <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="userName">Користувач</h2>
+                        <p id="userEmail">user@example.com</p>
+                        <p class="registration-date">Реєстрація: <span id="registrationDate">2024-01-01</span></p>
+                    </div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <span class="stat-number" id="profileTotalTasks">0</span>
+                        <span class="stat-label">Всього завдань</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="profileCompletedTasks">0</span>
+                        <span class="stat-label">Виконано</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="completionRate">0%</span>
+                        <span class="stat-label">Відсоток виконання</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>Налаштування профілю</h3>
+                <form id="profileForm" class="profile-form">
+                    <div class="form-group">
+                        <label for="profileName">Ім'я</label>
+                        <input type="text" id="profileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileEmail">Email</label>
+                        <input type="email" id="profileEmail" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                </form>
+            </div>
+
+            <div class="data-section">
+                <h3>Управління даними</h3>
+                <div class="data-actions">
+                    <button class="btn btn-secondary" onclick="exportData('json')">
+                        📥 Експорт JSON
+                    </button>
+                    <button class="btn btn-secondary" onclick="exportData('csv')">
+                        📊 Експорт CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('importInput').click()">
+                        📤 Імпорт даних
+                    </button>
+                    <input type="file" id="importInput" accept=".json,.csv" style="display: none;">
+                </div>
+            </div>
+
+            <div class="danger-section">
+                <h3>Небезпечна зона</h3>
+                <div class="danger-actions">
+                    <button class="btn btn-danger" onclick="clearAllData()">
+                        🗑️ Очистити всі дані
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="js/profile.js"></script>
+</body>
+</html>
