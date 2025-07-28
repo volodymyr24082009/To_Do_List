@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TO DO LIST - Офлайн</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #333;
+      }
+
+      .offline-container {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        max-width: 500px;
+        margin: 2rem;
+      }
+
+      .offline-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+      }
+
+      .offline-title {
+        font-size: 2rem;
+        color: #1f2937;
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .offline-message {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+      }
+
+      .offline-features {
+        text-align: left;
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+      }
+
+      .offline-features h3 {
+        color: #374151;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+      }
+
+      .offline-features ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .offline-features li {
+        padding: 0.5rem 0;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+      }
+
+      .offline-features li::before {
+        content: "✅";
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .retry-btn {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-right: 1rem;
+      }
+
+      .retry-btn:hover {
+        background: #4338ca;
+        transform: translateY(-2px);
+      }
+
+      .home-btn {
+        background: #6b7280;
+        color: white;
+        border: none;
+        padding: 0.875rem 2rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .home-btn:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+      }
+
+      .connection-status {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+
+      .connection-status.offline {
+        background: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+
+      .connection-status.online {
+        background: #dcfce7;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .offline-container {
+          padding: 2rem;
+          margin: 1rem;
+        }
+
+        .offline-title {
+          font-size: 1.5rem;
+        }
+
+        .offline-icon {
+          font-size: 4rem;
+        }
+
+        .retry-btn,
+        .home-btn {
+          display: block;
+          width: 100%;
+          margin: 0.5rem 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="offline-container">
+      <div class="offline-icon">📱</div>
+      <h1 class="offline-title">Ви працюєте офлайн</h1>
+      <p class="offline-message">
+        Не хвилюйтеся! TO DO LIST продовжує працювати навіть без інтернету. Ваші
+        дані збережені локально і синхронізуються при відновленні з'єднання.
+      </p>
+
+      <div class="offline-features">
+        <h3>Доступні функції:</h3>
+        <ul>
+          <li>Перегляд існуючих завдань</li>
+          <li>Створення нових завдань</li>
+          <li>Редагування завдань</li>
+          <li>Відмічання як виконані</li>
+          <li>Фільтрація та пошук</li>
+          <li>Експорт даних</li>
+        </ul>
+      </div>
+
+      <div class="actions">
+        <button class="retry-btn" onclick="checkConnection()">
+          🔄 Перевірити з'єднання
+        </button>
+        <a href="/index.html" class="home-btn"> 🏠 На головну </a>
+      </div>
+
+      <div id="connectionStatus" class="connection-status offline">
+        📡 Немає підключення до інтернету
+      </div>
+    </div>
+
+    <script>
+      function checkConnection() {
+        const statusEl = document.getElementById("connectionStatus");
+        const retryBtn = document.querySelector(".retry-btn");
+
+        retryBtn.textContent = "⏳ Перевіряємо...";
+        retryBtn.disabled = true;
+
+        // Simulate connection check
+        fetch("/manifest.json", {
+          method: "HEAD",
+          cache: "no-cache",
+        })
+          .then((response) => {
+            if (response.ok) {
+              statusEl.className = "connection-status online";
+              statusEl.innerHTML =
+                "✅ З'єднання відновлено! Перенаправляємо...";
+
+              setTimeout(() => {
+                window.location.href = "/index.html";
+              }, 1500);
+            } else {
+              throw new Error("No connection");
+            }
+          })
+          .catch(() => {
+            statusEl.className = "connection-status offline";
+            statusEl.innerHTML = "❌ З'єднання все ще відсутнє";
+
+            retryBtn.textContent = "🔄 Перевірити з'єднання";
+            retryBtn.disabled = false;
+          });
+      }
+
+      // Auto-check connection every 30 seconds
+      setInterval(() => {
+        if (navigator.onLine) {
+          checkConnection();
+        }
+      }, 30000);
+
+      // Listen for online event
+      window.addEventListener("online", () => {
+        checkConnection();
+      });
+
+      // Update status based on navigator.onLine
+      function updateConnectionStatus() {
+        const statusEl = document.getElementById("connectionStatus");
+        if (navigator.onLine) {
+          statusEl.className = "connection-status online";
+          statusEl.innerHTML = "🌐 З'єднання доступне";
+        } else {
+          statusEl.className = "connection-status offline";
+          statusEl.innerHTML = "📡 Немає підключення до інтернету";
+        }
+      }
+
+      // Initial status check
+      updateConnectionStatus();
+
+      // Listen for connection changes
+      window.addEventListener("online", updateConnectionStatus);
+      window.addEventListener("offline", updateConnectionStatus);
+    </script>
+  </body>
+</html>

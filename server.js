@@ -295,7 +295,7 @@ class DatabaseManager {
           [
             "Іван Петренко",
             "ivan.petrenko@example.com",
-            "$2b$10$rOzJqQjQjQjQjQjQjQjQjOzJqQjQjQjQjQjQjQjQjQjQjQjQjQjQjQ",
+            "$2b$10$rOzJqQjQjQjQjQjQjQjQjOzJqQjQjQjQjQjQjQjQjQjQjQjQjQjQ",
           ]
         );
 
@@ -1057,6 +1057,36 @@ app.use((req, res) => {
     res.status(404).json({ error: "Ендпоінт не знайдено" });
   } else {
     res.status(404).sendFile(path.join(__dirname, "auth.html"));
+  }
+});
+
+// ===== PWA API МАРШРУТИ =====
+
+// Підписка на push сповіщення
+app.post("/api/push/subscribe", authenticateToken, async (req, res) => {
+  try {
+    const subscription = req.body;
+
+    // Збереження підписки в БД (можна додати таблицю push_subscriptions)
+    console.log("📬 Нова підписка на push:", subscription);
+
+    res.json({ success: true, message: "Підписка збережена" });
+  } catch (error) {
+    console.error("Помилка збереження підписки:", error);
+    res.status(500).json({ error: "Помилка збереження підписки" });
+  }
+});
+
+// Аналітика PWA
+app.post("/api/analytics/pwa", (req, res) => {
+  try {
+    const analytics = req.body;
+    console.log("📊 PWA Analytics:", analytics);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Помилка аналітики:", error);
+    res.status(500).json({ error: "Помилка аналітики" });
   }
 });
 
