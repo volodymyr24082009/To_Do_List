@@ -1,27 +1,37 @@
 {
-  "name": "auth-system",
+  "name": "todo-list-app",
   "version": "1.0.0",
-  "description": "Authentication system with PostgreSQL",
+  "description": "Простий та зручний менеджер завдань з авторизацією",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "init-db": "node -e \"const { Pool } = require('pg'); const fs = require('fs'); const pool = new Pool({connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_5AaDEnCX3cLf@ep-soft-credit-adaqhtk9-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require', ssl: {rejectUnauthorized: false}}); const sql = fs.readFileSync('scripts/init-database.sql', 'utf8'); pool.query(sql).then(() => {console.log('✅ База даних ініціалізована успішно'); process.exit(0);}).catch(err => {console.error('❌ Помилка ініціалізації БД:', err); process.exit(1);});\"",
+    "fix-db": "node -e \"const { Pool } = require('pg'); const fs = require('fs'); const pool = new Pool({connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_5AaDEnCX3cLf@ep-soft-credit-adaqhtk9-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require', ssl: {rejectUnauthorized: false}}); const sql = fs.readFileSync('scripts/fix-database.sql', 'utf8'); pool.query(sql).then(() => {console.log('✅ База даних виправлена успішно'); process.exit(0);}).catch(err => {console.error('❌ Помилка виправлення БД:', err); process.exit(1);});\""
   },
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "bcryptjs": "2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "16.3.1",
     "express": "^4.18.2",
-    "express-rate-limit": "^8.0.1",
-    "fs": "^0.0.1-security",
-    "helmet": "^8.1.0",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.2",
-    "path": "^0.12.7",
-    "pg": "8.11.3"
+    "multer": "^1.4.5-lts.1",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
-    "nodemon": "3.0.1"
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "todo",
+    "task-manager",
+    "productivity",
+    "nodejs",
+    "postgresql"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
