@@ -9,215 +9,257 @@
     <meta name="theme-color" content="#4f46e5" />
   </head>
   <body>
-    <div class="auth-container">
-      <div class="auth-card">
-        <div class="auth-header">
-          <h1 class="logo">📝 TO DO LIST</h1>
-          <p class="subtitle">Організуйте свої справи ефективно</p>
-        </div>
+    <div class="container">
+      <header class="header">
+        <h1 class="logo">📝 TO DO LIST</h1>
+        <nav class="nav">
+          <a href="auth.html" class="nav-link active">Авторизація</a>
+          <a href="index.html" class="nav-link">Головна</a>
+        </nav>
+      </header>
 
-        <!-- Форма входу -->
-        <div id="loginForm" class="auth-form active">
-          <h2>Вхід в акаунт</h2>
-          <form id="loginFormElement">
-            <div class="form-group">
-              <label for="loginEmail">Email</label>
-              <input
-                type="email"
-                id="loginEmail"
-                name="email"
-                required
-                placeholder="Введіть ваш email"
-              />
-              <span class="form-error" id="loginEmailError"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="loginPassword">Пароль</label>
-              <div class="password-input">
-                <input
-                  type="password"
-                  id="loginPassword"
-                  name="password"
-                  required
-                  placeholder="Введіть ваш пароль"
-                />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  onclick="togglePassword('loginPassword')"
-                >
-                  👁️
-                </button>
+      <main class="main">
+        <div class="auth-section">
+          <div class="auth-card">
+            <!-- Форма входу -->
+            <div id="loginForm" class="auth-form active">
+              <div class="form-header">
+                <h2>Вхід в акаунт</h2>
+                <p class="form-subtitle">
+                  Увійдіть, щоб продовжити роботу з завданнями
+                </p>
               </div>
-              <span class="form-error" id="loginPasswordError"></span>
+
+              <form id="loginFormElement">
+                <div class="form-group">
+                  <label for="loginEmail">Email</label>
+                  <input
+                    type="email"
+                    id="loginEmail"
+                    name="email"
+                    required
+                    placeholder="Введіть ваш email"
+                  />
+                  <span class="form-error" id="loginEmailError"></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="loginPassword">Пароль</label>
+                  <div class="password-input">
+                    <input
+                      type="password"
+                      id="loginPassword"
+                      name="password"
+                      required
+                      placeholder="Введіть ваш пароль"
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle"
+                      onclick="togglePassword('loginPassword')"
+                    >
+                      👁️
+                    </button>
+                  </div>
+                  <span class="form-error" id="loginPasswordError"></span>
+                </div>
+
+                <div class="form-options">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="rememberMe" />
+                    <span class="checkmark"></span>
+                    Запам'ятати мене
+                  </label>
+                  <a
+                    href="#"
+                    class="forgot-password"
+                    onclick="showForgotPassword()"
+                  >
+                    Забули пароль?
+                  </a>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                  <span class="btn-text">Увійти</span>
+                  <span class="btn-loader" style="display: none">⏳</span>
+                </button>
+              </form>
+
+              <div class="auth-switch">
+                <p>
+                  Немає акаунта?
+                  <a href="#" onclick="switchToRegister()">Зареєструватися</a>
+                </p>
+              </div>
             </div>
 
-            <div class="form-options">
-              <label class="checkbox-label">
-                <input type="checkbox" id="rememberMe" />
-                <span class="checkmark"></span>
-                Запам'ятати мене
-              </label>
-              <a
-                href="#"
-                class="forgot-password"
-                onclick="showForgotPassword()"
-              >
-                Забули пароль?
-              </a>
+            <!-- Форма реєстрації -->
+            <div id="registerForm" class="auth-form">
+              <div class="form-header">
+                <h2>Створення акаунта</h2>
+                <p class="form-subtitle">
+                  Приєднуйтесь до нас та організуйте свої справи
+                </p>
+              </div>
+
+              <form id="registerFormElement">
+                <div class="form-group">
+                  <label for="registerName">Повне ім'я</label>
+                  <input
+                    type="text"
+                    id="registerName"
+                    name="name"
+                    required
+                    placeholder="Введіть ваше повне ім'я"
+                    minlength="2"
+                    maxlength="100"
+                  />
+                  <span class="form-error" id="registerNameError"></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="registerEmail">Email</label>
+                  <input
+                    type="email"
+                    id="registerEmail"
+                    name="email"
+                    required
+                    placeholder="Введіть ваш email"
+                  />
+                  <span class="form-error" id="registerEmailError"></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="registerPassword">Пароль</label>
+                  <div class="password-input">
+                    <input
+                      type="password"
+                      id="registerPassword"
+                      name="password"
+                      required
+                      placeholder="Створіть надійний пароль"
+                      minlength="6"
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle"
+                      onclick="togglePassword('registerPassword')"
+                    >
+                      👁️
+                    </button>
+                  </div>
+                  <div class="password-strength" id="passwordStrength"></div>
+                  <span class="form-error" id="registerPasswordError"></span>
+                </div>
+
+                <div class="form-group">
+                  <label for="confirmPassword">Підтвердження пароля</label>
+                  <div class="password-input">
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      required
+                      placeholder="Повторіть пароль"
+                    />
+                    <button
+                      type="button"
+                      class="password-toggle"
+                      onclick="togglePassword('confirmPassword')"
+                    >
+                      👁️
+                    </button>
+                  </div>
+                  <span class="form-error" id="confirmPasswordError"></span>
+                </div>
+
+                <div class="form-options">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="agreeTerms" required />
+                    <span class="checkmark"></span>
+                    Я погоджуюся з
+                    <a href="#" onclick="showTerms()">умовами використання</a>
+                  </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="registerBtn">
+                  <span class="btn-text">Зареєструватися</span>
+                  <span class="btn-loader" style="display: none">⏳</span>
+                </button>
+              </form>
+
+              <div class="auth-switch">
+                <p>
+                  Вже маєте акаунт?
+                  <a href="#" onclick="switchToLogin()">Увійти</a>
+                </p>
+              </div>
             </div>
 
-            <button type="submit" class="btn btn-primary" id="loginBtn">
-              <span class="btn-text">Увійти</span>
-              <span class="btn-loader" style="display: none">⏳</span>
-            </button>
-          </form>
+            <!-- Форма відновлення пароля -->
+            <div id="forgotForm" class="auth-form">
+              <div class="form-header">
+                <h2>Відновлення пароля</h2>
+                <p class="form-subtitle">
+                  Введіть ваш email і ми надішлемо інструкції для відновлення
+                  пароля
+                </p>
+              </div>
 
-          <div class="auth-switch">
-            <p>
-              Немає акаунта?
-              <a href="#" onclick="switchToRegister()">Зареєструватися</a>
-            </p>
+              <form id="forgotFormElement">
+                <div class="form-group">
+                  <label for="forgotEmail">Email</label>
+                  <input
+                    type="email"
+                    id="forgotEmail"
+                    name="email"
+                    required
+                    placeholder="Введіть ваш email"
+                  />
+                  <span class="form-error" id="forgotEmailError"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="forgotBtn">
+                  <span class="btn-text">Надіслати інструкції</span>
+                  <span class="btn-loader" style="display: none">⏳</span>
+                </button>
+              </form>
+
+              <div class="auth-switch">
+                <p>
+                  <a href="#" onclick="switchToLogin()"
+                    >← Повернутися до входу</a
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Інформаційна панель -->
+          <div class="info-panel">
+            <div class="info-card">
+              <div class="info-icon">📋</div>
+              <h3>Організуйте завдання</h3>
+              <p>
+                Створюйте, редагуйте та відстежуйте свої завдання в одному місці
+              </p>
+            </div>
+            <div class="info-card">
+              <div class="info-icon">⏰</div>
+              <h3>Встановлюйте дедлайни</h3>
+              <p>
+                Ніколи не пропускайте важливі терміни з нашою системою
+                нагадувань
+              </p>
+            </div>
+            <div class="info-card">
+              <div class="info-icon">📊</div>
+              <h3>Відстежуйте прогрес</h3>
+              <p>Аналізуйте свою продуктивність та досягайте більшого</p>
+            </div>
           </div>
         </div>
-
-        <!-- Форма реєстрації -->
-        <div id="registerForm" class="auth-form">
-          <h2>Створення акаунта</h2>
-          <form id="registerFormElement">
-            <div class="form-group">
-              <label for="registerName">Повне ім'я</label>
-              <input
-                type="text"
-                id="registerName"
-                name="name"
-                required
-                placeholder="Введіть ваше повне ім'я"
-                minlength="2"
-                maxlength="100"
-              />
-              <span class="form-error" id="registerNameError"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="registerEmail">Email</label>
-              <input
-                type="email"
-                id="registerEmail"
-                name="email"
-                required
-                placeholder="Введіть ваш email"
-              />
-              <span class="form-error" id="registerEmailError"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="registerPassword">Пароль</label>
-              <div class="password-input">
-                <input
-                  type="password"
-                  id="registerPassword"
-                  name="password"
-                  required
-                  placeholder="Створіть надійний пароль"
-                  minlength="6"
-                />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  onclick="togglePassword('registerPassword')"
-                >
-                  👁️
-                </button>
-              </div>
-              <div class="password-strength" id="passwordStrength"></div>
-              <span class="form-error" id="registerPasswordError"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="confirmPassword">Підтвердження пароля</label>
-              <div class="password-input">
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  required
-                  placeholder="Повторіть пароль"
-                />
-                <button
-                  type="button"
-                  class="password-toggle"
-                  onclick="togglePassword('confirmPassword')"
-                >
-                  👁️
-                </button>
-              </div>
-              <span class="form-error" id="confirmPasswordError"></span>
-            </div>
-
-            <div class="form-options">
-              <label class="checkbox-label">
-                <input type="checkbox" id="agreeTerms" required />
-                <span class="checkmark"></span>
-                Я погоджуюся з
-                <a href="#" onclick="showTerms()">умовами використання</a>
-              </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary" id="registerBtn">
-              <span class="btn-text">Зареєструватися</span>
-              <span class="btn-loader" style="display: none">⏳</span>
-            </button>
-          </form>
-
-          <div class="auth-switch">
-            <p>
-              Вже маєте акаунт?
-              <a href="#" onclick="switchToLogin()">Увійти</a>
-            </p>
-          </div>
-        </div>
-
-        <!-- Форма відновлення пароля -->
-        <div id="forgotForm" class="auth-form">
-          <h2>Відновлення пароля</h2>
-          <p class="form-description">
-            Введіть ваш email і ми надішлемо інструкції для відновлення пароля
-          </p>
-          <form id="forgotFormElement">
-            <div class="form-group">
-              <label for="forgotEmail">Email</label>
-              <input
-                type="email"
-                id="forgotEmail"
-                name="email"
-                required
-                placeholder="Введіть ваш email"
-              />
-              <span class="form-error" id="forgotEmailError"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary" id="forgotBtn">
-              <span class="btn-text">Надіслати інструкції</span>
-              <span class="btn-loader" style="display: none">⏳</span>
-            </button>
-          </form>
-
-          <div class="auth-switch">
-            <p>
-              <a href="#" onclick="switchToLogin()">← Повернутися до входу</a>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Фонові елементи -->
-      <div class="background-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
-      </div>
+      </main>
     </div>
 
     <!-- Модальне вікно сповіщень -->

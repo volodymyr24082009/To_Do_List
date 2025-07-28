@@ -26,17 +26,415 @@ const pool = new Pool({
   },
 });
 
-// Тестування підключення до БД
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error("❌ Помилка підключення до БД:", err);
-  } else {
-    console.log("✅ Успішне підключення до PostgreSQL");
-    release();
+// ===== КЛАС МЕНЕДЖЕРА БАЗИ ДАНИХ =====
+class DatabaseManager {
+  constructor(pool) {
+    this.pool = pool;
   }
-});
 
-// Middleware
+  async checkConnection() {
+    try {
+      const client = await this.pool.connect();
+      console.log("✅ Успішне підключення до PostgreSQL");
+      client.release();
+      return true;
+    } catch (error) {
+      console.error("❌ Помилка підключення до БД:", error.message);
+      return false;
+    }
+  }
+
+  async checkTableExists(tableName) {
+    try {
+      const result = await this.pool.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = 'public' 
+          AND table_name = $1
+        )`,
+        [tableName]
+      );
+      return result.rows[0].exists;
+    } catch (error) {
+      console.error(`Помилка перевірки таблиці ${tableName}:`, error.message);
+      return false;
+    }
+  }
+
+  async checkColumnExists(tableName, columnName) {
+    try {
+      const result = await this.pool.query(
+        `SELECT EXISTS (
+          SELECT FROM information_schema.columns 
+          WHERE table_name = $1 AND column_name = $2
+        )`,
+        [tableName, columnName]
+      );
+      return result.rows[0].exists;
+    } catch (error) {
+      console.error(
+        `Помилка перевірки колонки ${tableName}.${columnName}:`,
+        error.message
+      );
+      return false;
+    }
+  }
+
+  async getTableInfo(tableName) {
+    try {
+      const result = await this.pool.query(
+        `SELECT column_name, data_type, is_nullable, column_default
+         FROM information_schema.columns 
+         WHERE table_name = $1
+         ORDER BY ordinal_position`,
+        [tableName]
+      );
+      return result.rows;
+    } catch (error) {
+      console.error(
+        `Помилка отримання інформації про таблицю ${tableName}:`,
+        error.message
+      );
+      return [];
+    }
+  }
+
+  async getRecordCount(tableName) {
+    try {
+      const result = await this.pool.query(
+        `SELECT COUNT(*) as count FROM ${tableName}`
+      );
+      return Number.parseInt(result.rows[0].count);
+    } catch (error) {
+      console.error(
+        `Помилка підрахунку записів в ${tableName}:`,
+        error.message
+      );
+      return 0;
+    }
+  }
+
+  async createUsersTable() {
+    const sql = `
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        avatar TEXT DEFAULT '/placeholder.svg?height=120&width=120',
+        registration_date DATE DEFAULT CURRENT_DATE,
+        role VARCHAR(50) DEFAULT 'user',
+        tfa_enabled BOOLEAN DEFAULT FALSE,
+        tfa_secret TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    try {
+      await this.pool.query(sql);
+      console.log("✅ Таблиця users створена/перевірена");
+    } catch (error) {
+      console.error("❌ Помилка створення таблиці users:", error.message);
+      throw error;
+    }
+  }
+
+  async createTasksTable() {
+    const sql = `
+      CREATE TABLE IF NOT EXISTS tasks (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        name VARCHAR(500) NOT NULL,
+        description TEXT,
+        priority VARCHAR(20) DEFAULT 'medium',
+        deadline DATE,
+        tags TEXT[],
+        completed BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    try {
+      await this.pool.query(sql);
+      console.log("✅ Таблиця tasks створена/перевірена");
+    } catch (error) {
+      console.error("❌ Помилка створення таблиці tasks:", error.message);
+      throw error;
+    }
+  }
+
+  async createUserHistoryTable() {
+    const sql = `
+      CREATE TABLE IF NOT EXISTS user_history (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        action VARCHAR(255) NOT NULL,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    try {
+      await this.pool.query(sql);
+      console.log("✅ Таблиця user_history створена/перевірена");
+    } catch (error) {
+      console.error(
+        "❌ Помилка створення таблиці user_history:",
+        error.message
+      );
+      throw error;
+    }
+  }
+
+  async createIndexes() {
+    const indexes = [
+      {
+        name: "idx_users_email",
+        sql: "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)",
+      },
+      {
+        name: "idx_tasks_user_id",
+        sql: "CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id)",
+      },
+      {
+        name: "idx_tasks_completed",
+        sql: "CREATE INDEX IF NOT EXISTS idx_tasks_completed ON tasks(completed)",
+      },
+      {
+        name: "idx_user_history_user_id",
+        sql: "CREATE INDEX IF NOT EXISTS idx_user_history_user_id ON user_history(user_id)",
+      },
+    ];
+
+    for (const index of indexes) {
+      try {
+        await this.pool.query(index.sql);
+        console.log(`✅ Індекс ${index.name} створений/перевірений`);
+      } catch (error) {
+        console.error(
+          `❌ Помилка створення індексу ${index.name}:`,
+          error.message
+        );
+      }
+    }
+  }
+
+  async addMissingColumns() {
+    const requiredColumns = [
+      {
+        table: "users",
+        column: "avatar",
+        type: "TEXT",
+        default: "'/placeholder.svg?height=120&width=120'",
+      },
+      {
+        table: "users",
+        column: "registration_date",
+        type: "DATE",
+        default: "CURRENT_DATE",
+      },
+      {
+        table: "users",
+        column: "role",
+        type: "VARCHAR(50)",
+        default: "'user'",
+      },
+      {
+        table: "users",
+        column: "tfa_enabled",
+        type: "BOOLEAN",
+        default: "FALSE",
+      },
+      { table: "users", column: "tfa_secret", type: "TEXT", default: "NULL" },
+      {
+        table: "users",
+        column: "created_at",
+        type: "TIMESTAMP",
+        default: "CURRENT_TIMESTAMP",
+      },
+      {
+        table: "users",
+        column: "updated_at",
+        type: "TIMESTAMP",
+        default: "CURRENT_TIMESTAMP",
+      },
+    ];
+
+    for (const col of requiredColumns) {
+      const exists = await this.checkColumnExists(col.table, col.column);
+      if (!exists) {
+        try {
+          const sql = `ALTER TABLE ${col.table} ADD COLUMN ${col.column} ${col.type} DEFAULT ${col.default}`;
+          await this.pool.query(sql);
+          console.log(`✅ Додано колонку ${col.table}.${col.column}`);
+        } catch (error) {
+          console.error(
+            `❌ Помилка додавання колонки ${col.table}.${col.column}:`,
+            error.message
+          );
+        }
+      }
+    }
+  }
+
+  async insertTestData() {
+    try {
+      // Перевірка чи існує тестовий користувач
+      const existingUser = await this.pool.query(
+        "SELECT id FROM users WHERE email = $1",
+        ["ivan.petrenko@example.com"]
+      );
+
+      if (existingUser.rows.length === 0) {
+        // Додавання тестового користувача
+        const userResult = await this.pool.query(
+          "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id",
+          [
+            "Іван Петренко",
+            "ivan.petrenko@example.com",
+            "$2b$10$rOzJqQjQjQjQjQjQjQjQjOzJqQjQjQjQjQjQjQjQjQjQjQjQjQjQjQ",
+          ]
+        );
+
+        const userId = userResult.rows[0].id;
+
+        // Додавання тестового завдання
+        await this.pool.query(
+          "INSERT INTO tasks (user_id, name, description, priority, deadline, tags, completed) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+          [
+            userId,
+            "Перше завдання",
+            "Це тестове завдання для демонстрації функціональності",
+            "high",
+            new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +7 днів
+            ["тест", "демо"],
+            false,
+          ]
+        );
+
+        console.log("✅ Додано тестові дані");
+        console.log(
+          "   👤 Користувач: ivan.petrenko@example.com (пароль: password123)"
+        );
+        console.log("   📋 Тестове завдання створено");
+      } else {
+        console.log("ℹ️  Тестові дані вже існують");
+      }
+    } catch (error) {
+      console.error("❌ Помилка додавання тестових даних:", error.message);
+    }
+  }
+
+  async getDatabaseInfo() {
+    const info = {
+      tables: [],
+      totalRecords: 0,
+      status: "healthy",
+    };
+
+    try {
+      // Список таблиць
+      const tablesResult = await this.pool.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        ORDER BY table_name
+      `);
+
+      for (const row of tablesResult.rows) {
+        const count = await this.getRecordCount(row.table_name);
+        const columns = await this.getTableInfo(row.table_name);
+
+        info.tables.push({
+          name: row.table_name,
+          records: count,
+          columns: columns.map((col) => ({
+            name: col.column_name,
+            type: col.data_type,
+            nullable: col.is_nullable === "YES",
+            default: col.column_default,
+          })),
+        });
+
+        info.totalRecords += count;
+      }
+
+      return info;
+    } catch (error) {
+      console.error("❌ Помилка отримання інформації про БД:", error.message);
+      info.status = "error";
+      info.error = error.message;
+      return info;
+    }
+  }
+
+  async initializeDatabase(options = {}) {
+    const {
+      dropExisting = false,
+      addTestData = true,
+      fixOnly = false,
+    } = options;
+
+    console.log("🚀 Ініціалізація бази даних...");
+    console.log(
+      `Режим: ${
+        dropExisting
+          ? "ПОВНЕ ПЕРЕСОЗДАННЯ"
+          : fixOnly
+          ? "ТІЛЬКИ ВИПРАВЛЕННЯ"
+          : "СТВОРЕННЯ/ВИПРАВЛЕННЯ"
+      }`
+    );
+
+    try {
+      // Перевірка підключення
+      const connected = await this.checkConnection();
+      if (!connected) {
+        throw new Error("Неможливо підключитися до бази даних");
+      }
+
+      if (dropExisting && !fixOnly) {
+        console.log("\n🗑️  Видалення існуючих таблиць...");
+        await this.pool.query("DROP TABLE IF EXISTS user_history CASCADE");
+        await this.pool.query("DROP TABLE IF EXISTS tasks CASCADE");
+        await this.pool.query("DROP TABLE IF EXISTS users CASCADE");
+        console.log("✅ Існуючі таблиці видалено");
+      }
+
+      if (!fixOnly) {
+        console.log("\n🏗️  Створення таблиць...");
+        await this.createUsersTable();
+        await this.createTasksTable();
+        await this.createUserHistoryTable();
+      }
+
+      console.log("\n🔧 Виправлення структури...");
+      await this.addMissingColumns();
+
+      console.log("\n📊 Створення індексів...");
+      await this.createIndexes();
+
+      if (addTestData && !fixOnly) {
+        console.log("\n📝 Додавання тестових даних...");
+        await this.insertTestData();
+      }
+
+      console.log("\n🎉 База даних успішно ініціалізована!");
+      return { success: true, message: "База даних успішно ініціалізована!" };
+    } catch (error) {
+      console.error("\n❌ Помилка ініціалізації бази даних:", error.message);
+      return { success: false, error: error.message };
+    }
+  }
+}
+
+// Створення екземпляра менеджера БД
+const dbManager = new DatabaseManager(pool);
+
+// ===== MIDDLEWARE =====
 app.use(
   helmet({
     contentSecurityPolicy: false, // Вимкнути CSP для розробки
@@ -134,7 +532,51 @@ async function addToUserHistory(userId, type, action, details = "") {
   }
 }
 
-// МАРШРУТИ ДЛЯ СТАТИЧНИХ СТОРІНОК
+// ===== API МАРШРУТИ ДЛЯ УПРАВЛІННЯ БД =====
+
+// Ініціалізація БД
+app.post("/api/admin/database/init", async (req, res) => {
+  try {
+    const {
+      dropExisting = false,
+      addTestData = true,
+      fixOnly = false,
+    } = req.body;
+    const result = await dbManager.initializeDatabase({
+      dropExisting,
+      addTestData,
+      fixOnly,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Перевірка стану БД
+app.get("/api/admin/database/status", async (req, res) => {
+  try {
+    const info = await dbManager.getDatabaseInfo();
+    res.json(info);
+  } catch (error) {
+    res.status(500).json({ status: "error", error: error.message });
+  }
+});
+
+// Виправлення структури БД
+app.post("/api/admin/database/fix", async (req, res) => {
+  try {
+    const result = await dbManager.initializeDatabase({
+      fixOnly: true,
+      addTestData: false,
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ===== МАРШРУТИ ДЛЯ СТАТИЧНИХ СТОРІНОК =====
 
 // Кореневий маршрут - перенаправлення на auth.html
 app.get("/", (req, res) => {
@@ -146,7 +588,7 @@ app.get("/check-auth", (req, res) => {
   res.sendFile(path.join(__dirname, "auth.html"));
 });
 
-// API МАРШРУТИ ДЛЯ АВТОРИЗАЦІЇ
+// ===== API МАРШРУТИ ДЛЯ АВТОРИЗАЦІЇ =====
 
 // Реєстрація користувача
 app.post("/api/auth/register", async (req, res) => {
@@ -350,7 +792,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
   }
 });
 
-// API МАРШРУТИ ДЛЯ КОРИСТУВАЧА
+// ===== API МАРШРУТИ ДЛЯ КОРИСТУВАЧА =====
 
 // Отримання профілю користувача
 app.get("/api/user/profile", authenticateToken, async (req, res) => {
@@ -467,7 +909,7 @@ app.post(
   }
 );
 
-// API МАРШРУТИ ДЛЯ ЗАВДАНЬ
+// ===== API МАРШРУТИ ДЛЯ ЗАВДАНЬ =====
 
 // Отримання завдань користувача
 app.get("/api/user/tasks", authenticateToken, async (req, res) => {
@@ -596,7 +1038,7 @@ app.get("/api/user/statistics", authenticateToken, async (req, res) => {
   }
 });
 
-// Обробка помилок
+// ===== ОБРОБКА ПОМИЛОК =====
 app.use((error, req, res, next) => {
   console.error(error);
 
@@ -618,34 +1060,61 @@ app.use((req, res) => {
   }
 });
 
-// Запуск сервера
-app.listen(PORT, () => {
-  console.log(`🚀 Сервер запущено на порту ${PORT}`);
-  console.log(`📱 Головна сторінка: http://localhost:${PORT}`);
-  console.log(`🔐 Авторизація: http://localhost:${PORT}/auth.html`);
-  console.log(`📋 Завдання: http://localhost:${PORT}/index.html`);
-  console.log(`👤 Профіль: http://localhost:${PORT}/profile.html`);
+// ===== ЗАПУСК СЕРВЕРА =====
+async function startServer() {
+  try {
+    // Автоматична ініціалізація БД при запуску
+    console.log("🔄 Перевірка та ініціалізація бази даних...");
+    await dbManager.initializeDatabase({
+      dropExisting: false,
+      addTestData: true,
+      fixOnly: false,
+    });
 
-  // Створення необхідних директорій
-  const dirs = ["uploads/avatars"];
-  dirs.forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  });
-});
+    // Створення необхідних директорій
+    const dirs = ["uploads/avatars"];
+    dirs.forEach((dir) => {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+    });
+
+    // Запуск сервера
+    app.listen(PORT, () => {
+      console.log("\n" + "=".repeat(60));
+      console.log("🚀 TO DO LIST SERVER ЗАПУЩЕНО!");
+      console.log("=".repeat(60));
+      console.log(`📱 Головна сторінка: http://localhost:${PORT}`);
+      console.log(`🔐 Авторизація: http://localhost:${PORT}/auth.html`);
+      console.log(`📋 Завдання: http://localhost:${PORT}/index.html`);
+      console.log(`👤 Профіль: http://localhost:${PORT}/profile.html`);
+      console.log("\n🔧 API для управління БД:");
+      console.log(`   POST /api/admin/database/init - Ініціалізація БД`);
+      console.log(`   GET  /api/admin/database/status - Стан БД`);
+      console.log(`   POST /api/admin/database/fix - Виправлення БД`);
+      console.log("\n✅ Сервер готовий до роботи!");
+      console.log("=".repeat(60));
+    });
+  } catch (error) {
+    console.error("💥 Критична помилка запуску сервера:", error.message);
+    process.exit(1);
+  }
+}
 
 // Graceful shutdown
-process.on("SIGTERM", () => {
+process.on("SIGTERM", async () => {
   console.log("🛑 Сервер зупиняється...");
-  pool.end();
+  await pool.end();
   process.exit(0);
 });
 
-process.on("SIGINT", () => {
+process.on("SIGINT", async () => {
   console.log("🛑 Сервер зупиняється...");
-  pool.end();
+  await pool.end();
   process.exit(0);
 });
+
+// Запуск сервера
+startServer();
 
 module.exports = app;
