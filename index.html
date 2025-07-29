@@ -66,7 +66,7 @@
             </div>
           </div>
           <nav class="nav">
-            <a href="index.html" class="nav-link active">Головна</a>
+            <a href="index.html" class="nav-link">Головна</a>
             <a href="profile.html" class="nav-link">Профіль</a>
             <a href="auth.html" class="nav-link">Авторизація та Реєстрація</a>
           </nav>
@@ -93,7 +93,9 @@
               <option value="high">Високий пріоритет</option>
             </select>
             <div class="datetime-group">
-              <label for="deadlineInput" class="datetime-label">Оберіть дату:</label>
+              <label for="deadlineInput" class="datetime-label"
+                >Оберіть дату:</label
+              >
               <input type="date" id="deadlineInput" />
               <label for="timeInput" class="datetime-label">Час:</label>
               <input type="time" id="timeInput" />
@@ -219,6 +221,8 @@
     </div>
 
     <div id="notification" class="notification"></div>
+    <!-- Додаємо скрипт навігації ПЕРШИМ -->
+    <script src="js/navigation.js"></script>
     <script src="js/pwa.js"></script>
     <script src="js/index.js"></script>
   </body>

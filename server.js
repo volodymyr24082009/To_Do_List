@@ -10,7 +10,7 @@ const helmet = require("helmet");
 const { Pool } = require("pg");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 const JWT_SECRET =
   process.env.JWT_SECRET ||
   "58e4340959ca5cf1dd364be7d18757c21505040d3b540b33e9dddabebfd382d2";
