@@ -519,6 +519,7 @@ body {
   gap: 1rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+  align-items: end;
 }
 
 .input-group input,
@@ -536,6 +537,36 @@ body {
 
 .input-group input:focus,
 .input-group select:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* DateTime Group Styles */
+.datetime-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 200px;
+}
+
+.datetime-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.datetime-group input {
+  padding: 0.75rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.datetime-group input:focus {
   outline: none;
   border-color: var(--border-focus);
 }
@@ -660,6 +691,16 @@ body {
 
 [data-theme="dark"] .stat-card {
   background: rgba(31, 41, 55, 0.95);
+}
+
+.stat-card.clickable-stat {
+  cursor: pointer;
+}
+
+.stat-card.clickable-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+  border: 2px solid var(--primary-color);
 }
 
 .stat-number {
@@ -1127,6 +1168,10 @@ body {
 
   .input-group input,
   .input-group select {
+    min-width: auto;
+  }
+
+  .datetime-group {
     min-width: auto;
   }
 

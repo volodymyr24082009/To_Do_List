@@ -92,7 +92,12 @@
               <option value="medium" selected>Середній пріоритет</option>
               <option value="high">Високий пріоритет</option>
             </select>
-            <input type="date" id="deadlineInput" />
+            <div class="datetime-group">
+              <label for="deadlineInput" class="datetime-label">Оберіть дату:</label>
+              <input type="date" id="deadlineInput" />
+              <label for="timeInput" class="datetime-label">Час:</label>
+              <input type="time" id="timeInput" />
+            </div>
             <button id="addTaskBtn" class="btn btn-primary">Додати</button>
           </div>
           <div class="tags-input">
@@ -119,19 +124,19 @@
         </div>
 
         <div class="stats-section">
-          <div class="stat-card">
+          <div class="stat-card clickable-stat" data-filter="all">
             <span class="stat-number" id="totalTasks">0</span>
             <span class="stat-label">Всього</span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card clickable-stat" data-filter="active">
             <span class="stat-number" id="activeTasks">0</span>
             <span class="stat-label">Активні</span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card clickable-stat" data-filter="completed">
             <span class="stat-number" id="completedTasks">0</span>
             <span class="stat-label">Виконані</span>
           </div>
-          <div class="stat-card">
+          <div class="stat-card clickable-stat" data-filter="overdue">
             <span class="stat-number" id="overdueTasks">0</span>
             <span class="stat-label">Прострочені</span>
           </div>
@@ -185,8 +190,12 @@
                 </select>
               </div>
               <div class="form-group">
-                <label for="editTaskDeadline">Дедлайн</label>
-                <input type="datetime-local" id="editTaskDeadline" />
+                <label for="editTaskDeadline">Оберіть дату:</label>
+                <input type="date" id="editTaskDeadline" />
+              </div>
+              <div class="form-group">
+                <label for="editTaskTime">Час:</label>
+                <input type="time" id="editTaskTime" />
               </div>
             </div>
             <div class="form-group">
@@ -212,7 +221,5 @@
     <div id="notification" class="notification"></div>
     <script src="js/pwa.js"></script>
     <script src="js/index.js"></script>
-    <script src="js/notifications.js"></script>
-    <script src="js/deadline-manager.js"></script>
   </body>
 </html>

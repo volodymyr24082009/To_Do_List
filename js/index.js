@@ -101,6 +101,14 @@ class TodoApp {
       });
     });
 
+    // Clickable stat cards
+    document.querySelectorAll(".clickable-stat").forEach((card) => {
+      card.addEventListener("click", (e) => {
+        const filter = e.currentTarget.dataset.filter;
+        this.setFilter(filter);
+      });
+    });
+
     // Search
     document.getElementById("searchInput").addEventListener("input", (e) => {
       this.searchTasks(e.target.value);
@@ -127,6 +135,7 @@ class TodoApp {
     const taskInput = document.getElementById("taskInput");
     const prioritySelect = document.getElementById("prioritySelect");
     const deadlineInput = document.getElementById("deadlineInput");
+    const timeInput = document.getElementById("timeInput");
     const tagsInput = document.getElementById("tagsInput");
 
     const taskText = taskInput.value.trim();
@@ -135,12 +144,22 @@ class TodoApp {
       return;
     }
 
+    // Combine date and time if both are provided
+    let fullDeadline = null;
+    if (deadlineInput.value) {
+      if (timeInput.value) {
+        fullDeadline = `${deadlineInput.value}T${timeInput.value}`;
+      } else {
+        fullDeadline = deadlineInput.value;
+      }
+    }
+
     const task = {
       id: Date.now(),
       text: taskText,
       completed: false,
       priority: prioritySelect.value,
-      deadline: deadlineInput.value || null,
+      deadline: fullDeadline,
       tags: tagsInput.value
         ? tagsInput.value
             .split(",")
@@ -171,6 +190,7 @@ class TodoApp {
     document.getElementById("taskInput").value = "";
     document.getElementById("prioritySelect").value = "medium";
     document.getElementById("deadlineInput").value = "";
+    document.getElementById("timeInput").value = "";
     document.getElementById("tagsInput").value = "";
   }
 
@@ -209,7 +229,22 @@ class TodoApp {
     document.getElementById("editTaskDescription").value =
       task.description || "";
     document.getElementById("editTaskPriority").value = task.priority;
-    document.getElementById("editTaskDeadline").value = task.deadline || "";
+
+    // Handle datetime splitting
+    if (task.deadline) {
+      if (task.deadline.includes("T")) {
+        const [date, time] = task.deadline.split("T");
+        document.getElementById("editTaskDeadline").value = date;
+        document.getElementById("editTaskTime").value = time;
+      } else {
+        document.getElementById("editTaskDeadline").value = task.deadline;
+        document.getElementById("editTaskTime").value = "";
+      }
+    } else {
+      document.getElementById("editTaskDeadline").value = "";
+      document.getElementById("editTaskTime").value = "";
+    }
+
     document.getElementById("editTaskTags").value = task.tags.join(", ");
 
     this.openModal();
@@ -227,12 +262,25 @@ class TodoApp {
       return;
     }
 
+    const deadlineDate = document.getElementById("editTaskDeadline").value;
+    const deadlineTime = document.getElementById("editTaskTime").value;
+
+    // Combine date and time if both are provided
+    let fullDeadline = null;
+    if (deadlineDate) {
+      if (deadlineTime) {
+        fullDeadline = `${deadlineDate}T${deadlineTime}`;
+      } else {
+        fullDeadline = deadlineDate;
+      }
+    }
+
     task.text = name;
     task.description = document
       .getElementById("editTaskDescription")
       .value.trim();
     task.priority = document.getElementById("editTaskPriority").value;
-    task.deadline = document.getElementById("editTaskDeadline").value || null;
+    task.deadline = fullDeadline;
     task.tags = document.getElementById("editTaskTags").value
       ? document
           .getElementById("editTaskTags")
@@ -323,9 +371,19 @@ class TodoApp {
           task.deadline &&
           !task.completed &&
           new Date(task.deadline) < new Date();
-        const deadlineText = task.deadline
-          ? new Date(task.deadline).toLocaleDateString("uk-UA")
-          : "";
+
+        // Format deadline display
+        let deadlineText = "";
+        if (task.deadline) {
+          const deadline = new Date(task.deadline);
+          if (task.deadline.includes("T")) {
+            // Has both date and time
+            deadlineText = deadline.toLocaleString("uk-UA");
+          } else {
+            // Only date
+            deadlineText = deadline.toLocaleDateString("uk-UA");
+          }
+        }
 
         return `
         <div class="task-item ${task.completed ? "completed" : ""} ${
